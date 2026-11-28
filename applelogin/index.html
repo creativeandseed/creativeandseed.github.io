@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Catch Catch Anister</title>
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { display: flex; align-items: center; justify-content: center; background: #2a1a12; color: #fff6e0;
+         font-family: -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Noto Sans", sans-serif; text-align: center; }
+  .box { padding: 32px 24px; max-width: 420px; }
+  h1 { font-size: 22px; margin: 0 0 12px; }
+  p { font-size: 16px; line-height: 1.5; margin: 0 0 28px; opacity: .9; }
+  a.btn { display: inline-block; padding: 16px 28px; border-radius: 14px; background: #f6b93b; color: #3a2416;
+          font-size: 18px; font-weight: 700; text-decoration: none; }
+  a.btn[hidden] { display: none; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h1 id="t">Catch Catch Anister</h1>
+  <p id="m"></p>
+  <a id="go" class="btn" href="#" hidden></a>
+</div>
+<script>
+// 애플 로그인(Sign in with Apple)이 끝나면 애플이 이 주소로 돌려보낸다. 주소 뒤(#)에 붙어 온 결과를 게임 앱으로 넘겨 주는 것이 이 페이지의 전부다.
+// 받은 값은 어디에도 보내거나 저장하지 않는다(서버로 가는 요청이 없다). 게임 앱으로 넘긴 뒤에는 주소에서도 지운다.
+(function () {
+  var T = {
+    ko: ['로그인이 끝났어요. 게임으로 돌아갑니다.', '게임으로 돌아가기', '로그인을 마치지 못했어요. 게임으로 돌아가 다시 해 주세요.', '이 페이지는 게임 안에서 Apple로 로그인할 때 쓰입니다.'],
+    en: ['You are signed in. Returning to the game.', 'Return to the game', "Sign-in didn't finish. Go back to the game and try again.", 'This page is used when you sign in with Apple from the game.'],
+    de: ['Du bist angemeldet. Zurück zum Spiel.', 'Zurück zum Spiel', 'Die Anmeldung wurde nicht abgeschlossen. Geh zurück ins Spiel und versuch es noch mal.', 'Diese Seite wird für die Anmeldung mit Apple im Spiel verwendet.'],
+    fr: ['Connexion réussie. Retour au jeu.', 'Retour au jeu', "La connexion n'a pas abouti. Retourne dans le jeu et réessaie.", 'Cette page sert à la connexion avec Apple depuis le jeu.'],
+    id: ['Kamu sudah masuk. Kembali ke game.', 'Kembali ke game', 'Proses masuk belum selesai. Kembali ke game dan coba lagi, ya.', 'Halaman ini dipakai saat masuk dengan Apple dari game.'],
+    ms: ['Anda sudah log masuk. Kembali ke permainan.', 'Kembali ke permainan', 'Log masuk tidak selesai. Kembali ke permainan dan cuba lagi.', 'Halaman ini digunakan semasa log masuk dengan Apple dari permainan.'],
+    ru: ['Вход выполнен. Возвращаемся в игру.', 'Вернуться в игру', 'Войти не удалось. Вернись в игру и попробуй ещё раз.', 'Эта страница используется для входа через Apple из игры.'],
+    th: ['ลงชื่อเข้าใช้แล้ว กำลังกลับไปที่เกม', 'กลับไปที่เกม', 'ลงชื่อเข้าใช้ไม่สำเร็จ กลับไปที่เกมแล้วลองอีกครั้งนะ', 'หน้านี้ใช้ตอนลงชื่อเข้าใช้ด้วย Apple จากในเกม'],
+    vi: ['Đã đăng nhập. Đang quay lại trò chơi.', 'Quay lại trò chơi', 'Đăng nhập chưa xong. Hãy quay lại trò chơi và thử lại nhé.', 'Trang này dùng khi đăng nhập bằng Apple từ trong trò chơi.'],
+    'zh-hans': ['登录完成，正在返回游戏。', '返回游戏', '登录未完成，请回到游戏再试一次。', '此页面用于在游戏内使用 Apple 登录。'],
+    'zh-hant': ['登入完成，正在返回遊戲。', '返回遊戲', '登入未完成，請回到遊戲再試一次。', '此頁面用於在遊戲內使用 Apple 登入。']
+  };
+  var lang = (navigator.language || 'en').toLowerCase();
+  var key = lang.indexOf('zh') === 0 ? ((/tw|hk|mo|hant/.test(lang)) ? 'zh-hant' : 'zh-hans') : lang.slice(0, 2);
+  if (key === 'in') key = 'id';
+  var L = T[key] || T.en;
+  document.documentElement.lang = key;
+
+  var raw = (location.hash || '').replace(/^#/, '');
+  if (!raw && location.search) raw = location.search.replace(/^\?/, '');
+  var q = {};
+  raw.split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) q[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' ')); });
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+
+  var m = document.getElementById('m'), go = document.getElementById('go');
+  if (!q.id_token && !q.error) { m.textContent = L[3]; return; }
+
+  var back = 'state=' + encodeURIComponent(q.state || '') + (q.id_token ? '&id_token=' + encodeURIComponent(q.id_token) : '&error=' + encodeURIComponent(q.error || 'unknown'));
+  var isAndroid = /android/i.test(navigator.userAgent);
+  var link = isAndroid
+    ? 'intent://applelogin?' + back + '#Intent;scheme=anister;package=com.creativeandseed.catchcatch;end'
+    : 'anister://applelogin?' + back;
+
+  m.textContent = q.id_token ? L[0] : L[2];
+  go.textContent = L[1]; go.href = link; go.hidden = false;
+  setTimeout(function () { try { location.href = link; } catch (e) {} }, 60);
+})();
+</script>
+</body>
+</html>
